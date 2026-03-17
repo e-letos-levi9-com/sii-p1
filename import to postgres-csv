@@ -1,0 +1,24 @@
+CREATE EXTENSION IF NOT EXISTS file_fdw;
+
+CREATE SERVER csv_server
+FOREIGN DATA WRAPPER file_fdw;
+
+CREATE SCHEMA IF NOT EXISTS csv_data;
+
+CREATE FOREIGN TABLE csv_data.movies_csv (
+    cast_list text,
+    crew text,
+    id bigint
+)
+SERVER csv_server
+OPTIONS (
+    filename '/tmp/credits.csv',
+    format 'csv',
+    header 'true',
+    delimiter ',',
+    quote '"'
+);
+
+SELECT *
+FROM csv_data.movies_csv
+LIMIT 10;

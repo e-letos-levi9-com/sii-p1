@@ -1,0 +1,19 @@
+CREATE EXTENSION oracle_fdw;
+
+CREATE SERVER oracle_srv
+FOREIGN DATA WRAPPER oracle_fdw
+OPTIONS (dbserver '//laughing_taussig:1521/XEPDB1');
+
+CREATE USER MAPPING FOR postgres
+SERVER oracle_srv
+OPTIONS (user 'system', password 'oracle');
+
+CREATE SCHEMA oracle_data;
+
+IMPORT FOREIGN SCHEMA "SYSTEM"
+FROM SERVER oracle_srv
+INTO oracle_data;
+
+SELECT * 
+FROM oracle_data.movies
+LIMIT 10;
