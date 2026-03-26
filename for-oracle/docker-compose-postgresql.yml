@@ -1,0 +1,83 @@
+services:
+  postgres-db:
+    build:
+      context: .
+      dockerfile: Dockerfile.postgres-oracle
+    container_name: postgres-with-oracle
+    environment:
+      POSTGRES_DB: moviesdb
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres123
+      ORACLE_HOME: /opt/oracle/instantclient_21_15
+      LD_LIBRARY_PATH: /opt/oracle/instantclient_21_15
+    ports:
+      - "5433:5432" # Using port 5433 to avoid conflict with local PostgreSQL
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d
+      - ../data:/data:ro # Mount CSV data files as read-only
+    networks:
+      - db-network
+    depends_on:
+      - oracle-db
+      - mongodb-movies
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Add Oracle to the same network so PostgreSQL can reach it
+  oracle-db:
+    image: gvenzl/oracle-xe:latest
+    container_name: oracle-credits-db
+    environment:
+      ORACLE_PASSWORD: OraclePass123
+      ORACLE_DATABASE: CREDITSDB
+      APP_USER: credits_user
+      APP_USER_PASSWORD: credits_pass
+    ports:
+      - "1521:1521"
+      - "5500:5500"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      - ./init-scripts:/container-entrypoint-initdb.d
+    networks:
+      - db-network
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+  # Add MongoDB to the same network so PostgreSQL can reach it
+  mongodb-movies:
+    image: mongo:7
+    container_name: mongodb-movies
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: moviesdb
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+      - mongo-config:/data/configdb
+    networks:
+      - db-network
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+networks:
+  db-network:
+    name: db-network
+    driver: bridge
+
+volumes:
+  postgres-data:
+  oracle-data:
+  mongo-data:
+  mongo-config:
