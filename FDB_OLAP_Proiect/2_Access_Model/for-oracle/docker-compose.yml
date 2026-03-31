@@ -1,0 +1,25 @@
+version: "3.8"
+
+services:
+  oracle-db:
+    image: gvenzl/oracle-xe:latest
+    container_name: oracle-credits-db
+    environment:
+      ORACLE_PASSWORD: OraclePass123
+      ORACLE_DATABASE: CREDITSDB
+      APP_USER: credits_user
+      APP_USER_PASSWORD: credits_pass
+    ports:
+      - "1521:1521"
+      - "5500:5500"
+    volumes:
+      - oracle-data:/opt/oracle/oradata
+      - ./init-scripts:/container-entrypoint-initdb.d
+    healthcheck:
+      test: ["CMD", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+
+volumes:
+  oracle-data:
