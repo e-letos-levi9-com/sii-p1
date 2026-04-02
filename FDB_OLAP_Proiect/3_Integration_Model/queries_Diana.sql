@@ -1,7 +1,7 @@
 -- 1. GENRE PROFITABILITY ANALYSIS
 -- Determine which movie genres offer the best ROI and audience ratings
 -- Expected: Action/Adventure may have high revenue but Horror could have better ROI
-WITH genre_analysis AS (
+WITH top_users AS (
     SELECT 
         user_id,
         COUNT(*) as total_ratings,

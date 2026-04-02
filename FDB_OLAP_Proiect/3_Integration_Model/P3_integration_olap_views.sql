@@ -4,6 +4,10 @@
 CREATE SCHEMA IF NOT EXISTS integration_model;
 
 -- Access compatibility views (safe to recreate)
+-- Drop existing tables if they exist
+DROP TABLE IF EXISTS mongo_movies.movies_local CASCADE;
+DROP TABLE IF EXISTS csv_data.ratings_local CASCADE;
+
 CREATE OR REPLACE VIEW mongo_movies.movies_local AS
 SELECT
     _id::text AS _id,
